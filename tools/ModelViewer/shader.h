@@ -141,6 +141,7 @@ void main() {
 #expect SHOW_TEXTURE
 #expect SHOW_MATCAP
 #expect SHOW_UV
+#expect SHOW_DEPTH
 
     uniform mat4 T_cam_norm;
     uniform mat4 KT_cw;
@@ -187,6 +188,7 @@ void main() {
 #expect SHOW_TEXTURE
 #expect SHOW_MATCAP
 #expect SHOW_UV
+#expect SHOW_DEPTH
 
 #if SHOW_COLOR
     varying vec4 vColor;
@@ -204,6 +206,14 @@ void main() {
     varying vec3 vP;
 #endif
 
+float near = 0.01;
+float far = 10.;
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // back to NDC
+    return (2.0 * near * far) / (far + near - z * (far - near));
+}
+
 void main() {
 #if SHOW_COLOR
     gl_FragColor = vColor;
@@ -216,6 +226,8 @@ void main() {
     gl_FragColor = texture2D(matcap, uv);
 #elif SHOW_UV
     gl_FragColor = vec4(vUV,1.0-vUV.x,1.0);
+#elif SHOW_DEPTH
+    gl_FragColor = vec4(vec3(1./LinearizeDepth(gl_FragCoord.z)), 1.0);
 #else
     gl_FragColor = vec4(vP / 100.0,1.0);
 #endif

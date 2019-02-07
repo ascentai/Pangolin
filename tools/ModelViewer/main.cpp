@@ -34,7 +34,7 @@ int main( int argc, char** argv )
         { "model", {"-m","--model","--mesh"}, "3D Model to load (obj or ply)", 1},
         { "matcap", {"--matcap"}, "Matcap (material capture) images to load for shading", 1},
         { "envmap", {"--envmap","-e"}, "Equirect environment map for skybox", 1},
-        { "mode", {"--mode"}, "Render mode to use {show_uv, show_texture, show_color, show_normal, show_matcap, show_vertex}", 1},
+        { "mode", {"--mode"}, "Render mode to use {show_uv, show_texture, show_color, show_normal, show_matcap, show_vertex, show_depth}", 1},
         { "bounds", {"--aabb"}, "Show axis-aligned bounding-box", 0},
         { "cull_backfaces", {"--cull"}, "Enable backface culling", 0},
         { "spin", {"--spin"}, "Spin models around an axis {none, negx, x, negy, y, negz, z}", 1},
@@ -48,10 +48,10 @@ int main( int argc, char** argv )
     }
 
     // Options
-    enum class RenderMode { uv=0, tex, color, normal, matcap, vertex, num_modes };
-    const std::string mode_names[] = {"SHOW_UV", "SHOW_TEXTURE", "SHOW_COLOR", "SHOW_NORMAL", "SHOW_MATCAP", "SHOW_VERTEX"};
+    enum class RenderMode { uv=0, tex, color, normal, matcap, vertex, depth, num_modes };
+    const std::string mode_names[] = {"SHOW_UV", "SHOW_TEXTURE", "SHOW_COLOR", "SHOW_NORMAL", "SHOW_MATCAP", "SHOW_VERTEX", "SHOW_DEPTH"};
     const std::string spin_names[] = {"NONE", "NEGX", "X", "NEGY", "Y", "NEGZ", "Z"};
-    const char mode_key[] = {'u','t','c','n','m','v'};
+    const char mode_key[] = {'u','t','c','n','m','v', 'd'};
     RenderMode current_mode = RenderMode::normal;
     for(int i=0; i < (int)RenderMode::num_modes; ++i)
         if(pangolin::ToUpperCopy(args["mode"].as<std::string>("SHOW_NORMAL")) == mode_names[i])
@@ -75,7 +75,7 @@ int main( int argc, char** argv )
 
     // Define Projection and initial ModelView matrix
     pangolin::OpenGlRenderState s_cam(
-        pangolin::ProjectionMatrix(w, h, f, f, w/2.0, h/2.0, 0.2, 1000),
+        pangolin::ProjectionMatrix(w, h, f, f, w/2.0, h/2.0, 0.01, 10),
         pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisY)
     );
 
@@ -115,9 +115,19 @@ int main( int argc, char** argv )
                 auto geom = future_geom.get();
                 auto aabb = pangolin::GetAxisAlignedBox(geom);
                 total_aabb.extend(aabb);
-                const auto center = total_aabb.center();
-                const auto view = center + Eigen::Vector3f(1.2,1.2,1.2) * std::max( (total_aabb.max() - center).norm(), (center - total_aabb.min()).norm());
-                const auto mvm = pangolin::ModelViewLookAt(view[0], view[1], view[2], center[0], center[1], center[2], pangolin::AxisY);
+                const Eigen::Vector3f center = total_aabb.center();
+                std::cout << "center is: " << center.transpose() << std::endl;
+                std::cout << "max deviation norm: " <<  std::max( (total_aabb.max() - center).norm(), (center - total_aabb.min()).norm()) << std::endl;
+                std::cout << "view offset: " << Eigen::Vector3f(1.2,1.2,1.2) * std::max( (total_aabb.max() - center).norm(), (center - total_aabb.min()).norm()) << std::endl;
+                const auto view_offset_from_center = (Eigen::Vector3f(1.2,1.2,1.2) * std::max( (total_aabb.max() - center).norm(), (center - total_aabb.min()).norm())).eval();
+                const auto view = center + view_offset_from_center;
+                std::cout << "view is: "  << view.transpose() << std::endl;
+
+                std::cout << "aabb max: " << total_aabb.max().transpose() << " aabb min: " << total_aabb.min().transpose() << std::endl;
+                std::cout << "aabb max deviation: " << (total_aabb.max()-center).transpose() << " aabb min deviation: " << (total_aabb.min()-center).transpose() << std::endl;
+                std::cout << "aabb max deviation norm: " << (total_aabb.max()-center).transpose().norm() << " aabb min deviation norm: " << (total_aabb.min()-center).transpose().norm() << std::endl;
+
+                const auto mvm = pangolin::ModelViewLookAt(view(0), view(1), view(2), center(0), center(1), center(2), pangolin::AxisY);
                 s_cam.SetModelViewMatrix(mvm);
                 auto renderable = std::make_shared<GlGeomRenderable>(pangolin::ToGlGeometry(geom), aabb);
                 renderables.push_back(renderable);
@@ -146,10 +156,10 @@ int main( int argc, char** argv )
         current_mode = mode;
         default_prog.ClearShaders();
         std::map<std::string,std::string> prog_defines;
-        for(int i=0; i < (int)RenderMode::num_modes-1; ++i) {
+        for(int i=0; i < (int)RenderMode::num_modes; ++i) {
             prog_defines[mode_names[i]] = std::to_string((int)mode == i);
         }
-        default_prog.AddShader(pangolin::GlSlAnnotatedShader, default_model_shader, prog_defines);
+        default_prog.AddShader(pangolin::GlSlAnnotatedShader, model_depth_shader, prog_defines);
         default_prog.Link();
     };
     LoadProgram(current_mode);
@@ -248,6 +258,8 @@ int main( int argc, char** argv )
             }
 
             default_prog.Bind();
+
+            // manually set the object position attribute
             render_tree(
                 default_prog, root, s_cam.GetProjectionMatrix(), s_cam.GetModelViewMatrix(),
                 matcaps.size() ? &matcaps[matcap_index] : nullptr
