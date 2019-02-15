@@ -159,9 +159,9 @@ if(BUILD_PANGOLIN_GUI)
         list(APPEND SOURCES "ios/PangolinAppDelegate.mm" "ios/PangolinViewController.mm" )
         list(APPEND WINDOW_FACTORY_REG RegisterIosWindowFactory)
     else()
-        find_package(OpenGL REQUIRED QUIET)
+        find_package(OpenGL REQUIRED COMPONENTS OpenGL)
         list(APPEND USER_INC  "${OPENGL_INCLUDE_DIR}" )
-        list(APPEND LINK_LIBS "${OPENGL_LIBRARIES}" )
+        list(APPEND LINK_LIBS "${OPENGL_opengl_LIBRARY}" )
 
         if(NOT BUILD_EXTERN_GLEW)
             find_package(GLEW REQUIRED QUIET)
@@ -180,7 +180,7 @@ if(BUILD_PANGOLIN_GUI)
     endif()
 
     # headless offscreen rendering via EGL
-    find_package(OpenGL QUIET COMPONENTS EGL)
+    find_package(OpenGL REQUIRED COMPONENTS EGL)
     if(OpenGL_EGL_FOUND)
       list(APPEND WINDOW_FACTORY_REG RegisterNoneWindowFactory)
       list(APPEND SOURCES display/device/display_headless.cpp)
@@ -191,7 +191,6 @@ endif()
 
 #######################################################
 ## Find optional dependencies
-
 if(ANDROID)
     # Fix issue with thread local storage on android.
     add_definitions(-fno-data-sections)
@@ -749,3 +748,11 @@ install(
 install(
     EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKECONFIG_INSTALL_DIR}
 )
+
+
+#ERROR
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
