@@ -138,7 +138,7 @@ void HeadlessWindow::Move(const int /*x*/, const int /*y*/) { }
 
 void HeadlessWindow::Resize(const unsigned int /*w*/, const unsigned int /*h*/) { }
 
-void HeadlessWindow::ProcessEvents() { }
+void HeadlessWindow::ProcessEvents() {}
 
 void HeadlessWindow::SwapBuffers() {
     display.swap();

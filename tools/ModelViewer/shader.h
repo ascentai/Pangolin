@@ -227,7 +227,7 @@ void main() {
 #elif SHOW_UV
     gl_FragColor = vec4(vUV,1.0-vUV.x,1.0);
 #elif SHOW_DEPTH
-    gl_FragColor = vec4(vec3(1./LinearizeDepth(gl_FragCoord.z)), 1.0);
+    gl_FragColor = vec4(vec3(LinearizeDepth(gl_FragCoord.z)), 1.0);
 #else
     gl_FragColor = vec4(vP / 100.0,1.0);
 #endif

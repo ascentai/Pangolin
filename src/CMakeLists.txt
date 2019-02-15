@@ -179,13 +179,8 @@ if(BUILD_PANGOLIN_GUI)
         list(APPEND SOURCES gl2engine.cpp)
     endif()
 
-    # headless offscreen rendering via EGL
-    find_package(OpenGL QUIET COMPONENTS EGL)
-    if(OpenGL_EGL_FOUND)
-        list(APPEND WINDOW_FACTORY_REG RegisterNoneWindowFactory)
-        list(APPEND SOURCES display/device/display_headless.cpp)
-        list(APPEND LINK_LIBS ${OPENGL_egl_LIBRARY} )
-    endif()
+    find_package(OpenGL)
+
 endif()
 
 #######################################################
@@ -607,6 +602,7 @@ target_include_directories(${LIBRARY_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SO
                                                   $<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>)
 target_link_libraries(${LIBRARY_NAME} PUBLIC ${LINK_LIBS})
 
+
 ## Generate symbol export helper header on MSVC
 IF(MSVC)
     string(TOUPPER ${LIBRARY_NAME} LIBRARY_NAME_CAPS)
@@ -723,6 +719,10 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/${LIBRARY_NAME}/config.h"
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}/${LIBRARY_NAME}
 )
 install(DIRECTORY ${INCDIR}
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}
+)
+set( MICHAELPARKDIR "../include/mpark" )
+install(DIRECTORY ${MICHAELPARKDIR}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}
 )
 install(TARGETS ${LIBRARY_NAME}

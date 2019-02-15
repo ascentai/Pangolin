@@ -1,4 +1,6 @@
 #include <pangolin/pangolin.h>
+#include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
 
 int main( int /*argc*/, char** /*argv*/ )
 {
@@ -19,6 +21,7 @@ int main( int /*argc*/, char** /*argv*/ )
 
     pangolin::SaveWindowOnRender("window");
 
+    glClearColor(0.25f, 0.25f, 0.5f, 1.0f);
     // Clear screen and activate view to render into
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     d_cam.Activate(s_cam);
@@ -29,7 +32,16 @@ int main( int /*argc*/, char** /*argv*/ )
     // Swap frames and Process Events
     pangolin::FinishFrame();
 
+
+    unsigned char* image = (unsigned char*)malloc(sizeof(unsigned char) * 3 * 640 * 480);
+    glReadPixels(0, 0, 640, 480, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+    cv::Mat cv_image(480,640,CV_8UC3,image);
+    cv::imshow("cv_image", cv_image);
+    cv::waitKey(0);
+    cv::imwrite("cv_output.png", cv_image);
+
     pangolin::QuitAll();
-    
+
     return 0;
 }

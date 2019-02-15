@@ -25,7 +25,7 @@ int main( int argc, char** argv )
 {
     const float w = 640.0f;
     const float h = 480.0f;
-    const float f = 300.0f;
+    const float f = 416.0f;
 
     using namespace pangolin;
 
