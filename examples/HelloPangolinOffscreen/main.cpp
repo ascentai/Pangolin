@@ -37,8 +37,6 @@ int main( int /*argc*/, char** /*argv*/ )
     glReadPixels(0, 0, 640, 480, GL_RGB, GL_UNSIGNED_BYTE, image);
 
     cv::Mat cv_image(480,640,CV_8UC3,image);
-    cv::imshow("cv_image", cv_image);
-    cv::waitKey(0);
     cv::imwrite("cv_output.png", cv_image);
 
     pangolin::QuitAll();
