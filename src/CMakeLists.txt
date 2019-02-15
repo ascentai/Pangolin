@@ -179,7 +179,13 @@ if(BUILD_PANGOLIN_GUI)
         list(APPEND SOURCES gl2engine.cpp)
     endif()
 
-    find_package(OpenGL)
+    # headless offscreen rendering via EGL
+    find_package(OpenGL QUIET COMPONENTS EGL)
+    if(OpenGL_EGL_FOUND)
+      list(APPEND WINDOW_FACTORY_REG RegisterNoneWindowFactory)
+      list(APPEND SOURCES display/device/display_headless.cpp)
+      list(APPEND LINK_LIBS ${OPENGL_egl_LIBRARY} )
+    endif()
 
 endif()
 
