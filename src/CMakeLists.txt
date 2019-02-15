@@ -181,7 +181,6 @@ if(BUILD_PANGOLIN_GUI)
 
     # headless offscreen rendering via EGL
     find_package(OpenGL QUIET COMPONENTS EGL)
-    message(SEND_ERROR ${OpenGL_EGL_FOUND})
     if(OpenGL_EGL_FOUND)
       list(APPEND WINDOW_FACTORY_REG RegisterNoneWindowFactory)
       list(APPEND SOURCES display/device/display_headless.cpp)
