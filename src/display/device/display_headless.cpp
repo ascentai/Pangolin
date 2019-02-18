@@ -63,6 +63,8 @@ struct HeadlessWindow : public PangolinGl {
 };
 
 EGLDisplayHL::EGLDisplayHL(const int width, const int height) {
+    
+    unsetenv("DISPLAY"); //Force Headless as noted here: https://gist.github.com/andyneff/36293b1aeb509fd1c6313afabac777ee
     egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if(!egl_display) {
         std::cerr << "Failed to open EGL display" << std::endl;
