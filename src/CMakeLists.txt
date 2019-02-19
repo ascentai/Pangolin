@@ -159,7 +159,7 @@ if(BUILD_PANGOLIN_GUI)
         list(APPEND SOURCES "ios/PangolinAppDelegate.mm" "ios/PangolinViewController.mm" )
         list(APPEND WINDOW_FACTORY_REG RegisterIosWindowFactory)
     else()
-        find_package(OpenGL REQUIRED COMPONENTS OpenGL)
+        find_package(OpenGL REQUIRED QUIET)
         list(APPEND USER_INC  "${OPENGL_INCLUDE_DIR}" )
         list(APPEND LINK_LIBS "${OPENGL_opengl_LIBRARY}" )
 
@@ -180,7 +180,7 @@ if(BUILD_PANGOLIN_GUI)
     endif()
 
     # headless offscreen rendering via EGL
-    find_package(OpenGL REQUIRED COMPONENTS EGL)
+    find_package(OpenGL QUIET COMPONENTS EGL)
     if(OpenGL_EGL_FOUND)
       list(APPEND WINDOW_FACTORY_REG RegisterNoneWindowFactory)
       list(APPEND SOURCES display/device/display_headless.cpp)
